@@ -1,0 +1,50 @@
+edition: 1.0.0
+name: compoent-test
+access: 'undefined'
+
+services:
+  fc-zip-oss-nas-service:
+    component: devsapp/fc
+    props:
+      region: 'cn-beijing'
+      service:
+        name: 'apk-pre-tag-oss'
+        role: "acs:ram::1404199325832017:role/aliyunfcdefaultrole"
+        internetAccess: true
+        nasConfig: auto
+      function:
+        name: 'oss-invoke-fc-apk'
+        handler: index.handler
+        timeout: 70000
+        diskSize: 10240
+        instanceType: c1
+        runtime: python3.9
+        cpu: 16
+        instanceConcurrency: 1
+        memorySize: 32768
+        environmentVariables:
+          TZ: Asia/Shanghai
+          PROCESSED_DIR: "dst"
+          RETAIN_FILE_NAME: "false"
+          APK_SIGNING_TOOL: 'v2-Walle'
+          DST_BUCKET_NAME: 'hyhtest1'
+          DST_ENDPOINT: 'oss-cn-beijing-internal.aliyuncs.com'
+        asyncConfiguration:
+          maxAsyncEventAgeInSeconds: 70000
+          maxAsyncRetryAttempts: 3
+          statefulInvocation: true
+        codeUri: ./code/
+      triggers:
+        - name: unzip-oss-trigger
+          type: oss
+          config:
+            events:
+              - oss:ObjectCreated:PutObject
+              - oss:ObjectCreated:PostObject
+              - oss:ObjectCreated:CompleteMultipartUpload
+              - oss:ObjectCreated:PutSymlink
+            filter:
+              key:
+                prefix: "src"
+                suffix: .apk
+            bucketName: "zhouwei123"
