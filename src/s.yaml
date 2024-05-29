@@ -1,19 +1,19 @@
 edition: 1.0.0
 name: compoent-test
-access: 'undefined'
+access: '{{ access }}'
 
 services:
   fc-zip-oss-nas-service:
     component: devsapp/fc
     props:
-      region: 'cn-beijing'
+      region: '{{ region }}'
       service:
-        name: 'apk-pre-tag-oss'
-        role: "acs:ram::1404199325832017:role/aliyunfcdefaultrole"
+        name: '{{ serviceName }}'
+        role: "{{ roleArn }}"
         internetAccess: true
         nasConfig: auto
       function:
-        name: 'oss-invoke-fc-apk'
+        name: '{{ functionName }}'
         handler: index.handler
         timeout: 70000
         diskSize: 10240
@@ -24,11 +24,12 @@ services:
         memorySize: 32768
         environmentVariables:
           TZ: Asia/Shanghai
-          PROCESSED_DIR: "dst"
-          RETAIN_FILE_NAME: "false"
-          APK_SIGNING_TOOL: 'v2-Walle'
-          DST_BUCKET_NAME: 'hyhtest1'
-          DST_ENDPOINT: 'oss-cn-beijing-internal.aliyuncs.com'
+          PROCESSED_DIR: "{{ processedDir }}"
+          RETAIN_FILE_NAME: "{{ retainFileName }}"
+          APK_SIGNING_TOOL: "{{ apkPackVersion }}"
+          DST_BUCKET_NAME: "{{ dstbucketName }}"
+          DST_ENDPOINT: "{{ dstbucketendpoint }}"
+          CUSTOM_BLOCK_ID: "{{ blockId }}"
         asyncConfiguration:
           maxAsyncEventAgeInSeconds: 70000
           maxAsyncRetryAttempts: 3
@@ -45,6 +46,6 @@ services:
               - oss:ObjectCreated:PutSymlink
             filter:
               key:
-                prefix: "src"
+                prefix: "{{ prefix }}"
                 suffix: .apk
-            bucketName: "zhouwei123"
+            bucketName: "{{ bucketName }}"
