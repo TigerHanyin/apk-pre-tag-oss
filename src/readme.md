@@ -16,7 +16,7 @@
 
 <description>
 
-使用函数计算，自动预处理上传到OSS指定前缀目录的apk文件，主要用于预处理超过10G的单文件
+使用函数计算，自动预处理上传到OSS指定前缀目录的apk文件，主要用于预处理不超过10G的单文件
 
 </description>
 
@@ -56,7 +56,6 @@
 | --- |  --- |   --- |
 | 函数计算 | AliyunFCFullAccess |  创建和更新 pre-tag-apk 预处理函数 |
 | OSS | AliyunOSSFullAccess |  创建或更新 pre-tag-apk 预处理函数的 OSS 触发器 |
-| 其它 | AliyunECSFullAccess |  函数计算 VPC config 需要有安全组，安全组需要能自动创建 |
 
 </auth>
 
