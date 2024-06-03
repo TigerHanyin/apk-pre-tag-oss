@@ -11,7 +11,7 @@ Type: Application
 Name: apk-pre-tag-oss
 Provider:
   - 阿里云 
-Version: 1.0.29
+Version: 1.0.34
 Description: 使用函数计算，自动预处理上传到OSS指定前缀目录的apk文件，主要用于预处理不超过10G的单文件
 HomePage: 项目首页地址
 Tags:
@@ -25,9 +25,6 @@ Service: # 使用的服务
   OSS:
     Authorities:
       - AliyunOSSFullAccess
-  其它:
-    Authorities:
-      - AliyunECSFullAccess
 Parameters:
   type: object
   additionalProperties: false # 不允许增加其他属性

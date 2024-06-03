@@ -4,7 +4,7 @@
 # pre-tag-apk-oss 帮助文档
 <p align="center" class="flex justify-center">
     <a href="https://www.serverless-devs.com" class="ml-1">
-    <img src="http://editor.devsapp.cn/icon?package=pre-tag-apk-oss&type=packageType">
+    <img src="http://editor.devsapp.cn/icon?package=unzip-oss-nas&type=packageType">
   </a>
   <a href="http://www.devsapp.cn/details.html?name=pre-tag-apk-oss" class="ml-1">
     <img src="http://editor.devsapp.cn/icon?package=unzip-oss-nas&type=packageVersion">

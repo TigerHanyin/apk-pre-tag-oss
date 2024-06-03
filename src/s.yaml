@@ -3,7 +3,7 @@ name: compoent-test
 access: '{{ access }}'
 
 services:
-  fc-zip-oss-nas-service:
+  fc-apk-oss-service:
     component: devsapp/fc
     props:
       region: '{{ region }}'
@@ -11,7 +11,6 @@ services:
         name: '{{ serviceName }}'
         role: "{{ roleArn }}"
         internetAccess: true
-        nasConfig: auto
       function:
         name: '{{ functionName }}'
         handler: index.handler
