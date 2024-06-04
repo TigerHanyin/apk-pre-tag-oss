@@ -35,7 +35,7 @@ services:
           statefulInvocation: true
         codeUri: ./code/
       triggers:
-        - name: unzip-oss-trigger
+        - name: pre-tag-apk-oss-trigger
           type: oss
           config:
             events:
