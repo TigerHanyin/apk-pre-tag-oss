@@ -37,6 +37,7 @@ services:
       triggers:
         - name: pre-tag-apk-oss-trigger
           type: oss
+          role: "{{ triggerRoleArn }}"
           config:
             events:
               - oss:ObjectCreated:PutObject
