@@ -1,44 +1,36 @@
-edition: 1.0.0
+edition: 3.0.0
 name: compoent-test
 access: '{{ access }}'
-
-services:
+resources:
   fc-apk-oss-service:
-    component: devsapp/fc
+    component: fc3
     props:
       region: '{{ region }}'
-      service:
-        name: '{{ serviceName }}'
-        role: "{{ roleArn }}"
-        internetAccess: true
-      function:
-        name: '{{ functionName }}'
-        handler: index.handler
-        timeout: 70000
-        diskSize: 10240
-        instanceType: c1
-        runtime: python3.9
-        cpu: 16
-        instanceConcurrency: 1
-        memorySize: 32768
-        environmentVariables:
-          TZ: Asia/Shanghai
-          PROCESSED_DIR: "{{ processedDir }}"
-          RETAIN_FILE_NAME: "{{ retainFileName }}"
-          APK_SIGNING_TOOL: "{{ apkPackVersion }}"
-          DST_BUCKET_NAME: "{{ dstbucketName }}"
-          DST_ENDPOINT: "{{ dstbucketendpoint }}"
-          CUSTOM_BLOCK_ID: "{{ blockId }}"
-        asyncConfiguration:
-          maxAsyncEventAgeInSeconds: 70000
-          maxAsyncRetryAttempts: 3
-          statefulInvocation: true
-        codeUri: ./code/
+      handler: index.handler
+      timeout: 70000
+      diskSize: 10240
+      runtime: python3.9
+      cpu: 16
+      memorySize: 32768
+      environmentVariables:
+        TZ: Asia/Shanghai
+        PROCESSED_DIR: '{{ processedDir }}'
+        RETAIN_FILE_NAME: '{{ retainFileName }}'
+        APK_SIGNING_TOOL: '{{ apkPackVersion }}'
+        DST_BUCKET_NAME: '{{ dstbucketName }}'
+        DST_ENDPOINT: '{{ dstbucketendpoint }}'
+        CUSTOM_BLOCK_ID: '{{ blockId }}'
+      role: '{{ roleArn }}'
+      internetAccess: true
+      functionName: '{{ functionName }}'
+      code: ./code/
+      asyncInvokeConfig:
+        maxAsyncEventAgeInSeconds: 70000
+        maxAsyncRetryAttempts: 3
       triggers:
-        - name: pre-tag-apk-oss-trigger
-          type: oss
-          role: "{{ triggerRoleArn }}"
-          config:
+        - triggerName: pre-tag-apk-oss-trigger
+          triggerType: oss
+          triggerConfig:
             events:
               - oss:ObjectCreated:PutObject
               - oss:ObjectCreated:PostObject
@@ -46,6 +38,7 @@ services:
               - oss:ObjectCreated:PutSymlink
             filter:
               key:
-                prefix: "{{ prefix }}"
+                prefix: '{{ prefix }}'
                 suffix: .apk
-            bucketName: "{{ bucketName }}"
+          invocationRole: '{{ triggerRoleArn }}'
+          sourceArn: acs:oss:${this.props.region}:${config("AccountID")}:{{ bucketName }}
