@@ -182,21 +182,24 @@ def update_apk(bucket, object_name, central_dir_start_offset, apk_signing_block_
             'x-oss-meta-edgepack-offset': str(apk_signing_block_offset + length),
             'x-oss-meta-edgepack-type': 'v2'
         }
+        # determine_part_size方法用于确定分片大小。
+        # 增加对应预留白的信息大小
+        new_total_size = total_size + 10240 + 8 + 4
+        part_size = determine_part_size(new_total_size, preferred_size=100 * 1024)
         upload_id = dst_bucket.init_multipart_upload(new_object_name, headers=headers).upload_id
         
         parts = []
         with open(temp_local_apk_path, 'rb') as fileobj:
-            part_size = determine_part_size(total_size, preferred_size=100 * 1024)
             part_number = 1
             offset = 0
-            while offset < total_size:
-                num_to_upload = min(part_size, total_size - offset)
+            while offset < new_total_size:
+                num_to_upload = min(part_size, new_total_size - offset)
                 result = dst_bucket.upload_part(new_object_name, upload_id, part_number,
-                                                SizedFileAdapter(fileobj, num_to_upload))
+                                            SizedFileAdapter(fileobj, num_to_upload))
                 parts.append(PartInfo(part_number, result.etag))
                 offset += num_to_upload
                 part_number += 1
-        
+
         dst_bucket.complete_multipart_upload(new_object_name, upload_id, parts, headers=headers)
     finally:
         os.remove(temp_local_apk_path)

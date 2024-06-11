@@ -111,3 +111,4 @@ def handler(event, context):
     dst_bucket = initialize_bucket(auth, DEFAULT_DST_ENDPOINT, dst_bucket_name)
     
     helper.update_apk(bucket, object_name, central_dir_start_offset, apk_signing_block_offset, new_apk_signing_block, length, comment_length, new_key, dst_bucket)
+    return {}
