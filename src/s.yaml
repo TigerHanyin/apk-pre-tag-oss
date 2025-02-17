@@ -18,7 +18,6 @@ resources:
         RETAIN_FILE_NAME: '{{ retainFileName }}'
         APK_SIGNING_TOOL: '{{ apkPackVersion }}'
         DST_BUCKET_NAME: '{{ dstbucketName }}'
-        DST_ENDPOINT: '{{ dstbucketendpoint }}'
         CUSTOM_BLOCK_ID: '{{ blockId }}'
       role: '{{ roleArn }}'
       internetAccess: true

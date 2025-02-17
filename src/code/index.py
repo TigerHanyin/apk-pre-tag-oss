@@ -12,7 +12,6 @@ LOGGER = logging.getLogger()
 
 # Constants and Configurations
 DEFAULT_DST_BUCKET_NAME = os.environ.get("DST_BUCKET_NAME")
-DEFAULT_DST_ENDPOINT = os.environ.get("DST_ENDPOINT")
 PROCESSED_DIR = os.environ.get("PROCESSED_DIR", "")
 RETAIN_FILE_NAME = os.environ.get("RETAIN_FILE_NAME", "")
 APK_SIGNING_TOOL = os.environ.get("APK_SIGNING_TOOL", "v2-Walle")
@@ -29,9 +28,6 @@ def print_excute_time(func):
 
 def initialize_bucket(auth, endpoint, bucket_name):
     return oss2.Bucket(auth, endpoint, bucket_name)
-
-def get_dst_bucket_name(evt):
-    return os.environ.get("DST_BUCKET_NAME", evt['oss']['bucket']['name'])
 
 def get_event_details(event):
     evt_lst = json.loads(event)
@@ -91,11 +87,17 @@ def handler(event, context):
         object_name = resolve_symlink(bucket, object_name)
     
     validate_file_type(object_name)
-    new_key = construct_new_key(object_name, PROCESSED_DIR, RETAIN_FILE_NAME)
-    
+
     comment_length = helper.get_comment_length_from_oss(bucket, object_name)
+    dst_bucket = initialize_bucket(auth, endpoint, DEFAULT_DST_BUCKET_NAME)
+    new_key = construct_new_key(object_name, PROCESSED_DIR, RETAIN_FILE_NAME)
     central_dir_start_offset = helper.find_central_directory_start_offset(bucket, object_name, comment_length)
     apk_sig_block_data, apk_signing_block_offset = helper.find_apk_signing_block(bucket, object_name, central_dir_start_offset)
+    # v1
+    if apk_sig_block_data == "v1" and apk_signing_block_offset == "v1":
+        helper.update_apk_v1(bucket, object_name, comment_length, new_key, dst_bucket)
+        return {}
+    # v2
     originId_values = helper.find_id_values(apk_sig_block_data)
     
     apk_signature_scheme_v2_block = originId_values.get(helper.APK_SIGNATURE_SCHEME_V2_BLOCK_ID)
@@ -107,8 +109,6 @@ def handler(event, context):
     
     new_apk_signing_block, length = helper.create_apk_signing_block(originId_values)
     
-    dst_bucket_name = get_dst_bucket_name(evt)
-    dst_bucket = initialize_bucket(auth, DEFAULT_DST_ENDPOINT, dst_bucket_name)
     
     helper.update_apk(bucket, object_name, central_dir_start_offset, apk_signing_block_offset, new_apk_signing_block, length, comment_length, new_key, dst_bucket)
     return {}

@@ -79,7 +79,8 @@ def find_central_directory_start_offset(bucket, object_name, comment_length):
 def find_apk_signing_block(bucket, object_name, central_dir_offset):
     LOGGER.info('Finding APK signing block for object: {}'.format(object_name))
     if central_dir_offset < APK_SIG_BLOCK_MIN_SIZE:
-        raise SignatureNotFoundException("APK too small for APK Signing Block. ZIP Central Directory offset: " + str(central_dir_offset))
+        return "v1", "v1"
+        # raise SignatureNotFoundException("APK too small for APK Signing Block. ZIP Central Directory offset: " + str(central_dir_offset))
     
     footer_size = 24
     footer_start_pos = central_dir_offset - footer_size
@@ -89,8 +90,8 @@ def find_apk_signing_block(bucket, object_name, central_dir_offset):
     apk_sig_block_size, magic = struct.unpack(footer_format, footer_data)
     
     if magic != struct.pack('<QQ', APK_SIG_BLOCK_MAGIC_LO, APK_SIG_BLOCK_MAGIC_HI):
-        raise SignatureNotFoundException("No APK Signing Block before ZIP Central Directory")
-    
+        return "v1", "v1"
+        # raise SignatureNotFoundException("No APK Signing Block before ZIP Central Directory")
     if apk_sig_block_size < footer_size or apk_sig_block_size > central_dir_offset - APK_SIG_BLOCK_MIN_SIZE:
         raise SignatureNotFoundException("APK Signing Block size out of range: " + str(apk_sig_block_size))
     
@@ -144,6 +145,64 @@ def create_apk_signing_block(id_values):
     
     return signing_block_data, length + 8
 
+def update_apk_v1(bucket, object_name, comment_length, newKey, dst_bucket):
+    LOGGER.info('Updating eocd v1 for object: {}'.format(object_name))
+    part_size = 5 * 1024 * 1024
+    
+    total_size = bucket.head_object(object_name).content_length
+    num_parts = (total_size + part_size - 1) // part_size
+    _, temp_local_apk_path = tempfile.mkstemp()
+    # v1
+    comment_length_off_set = total_size - (comment_length + 2)
+    
+    try:
+        # Download APK in parts
+        with open(temp_local_apk_path, 'wb') as temp_file:
+            for part_number in range(num_parts):
+                start = part_number * part_size
+                end = min(start + part_size, total_size) - 1
+                result = bucket.get_object(object_name, byte_range=(start, end))
+                temp_file.write(result.read())
+
+        with open(temp_local_apk_path, 'r+b') as apk_file:
+            apk_file.seek(comment_length_off_set)
+            new_comment_length = comment_length + 512
+            apk_file.write(struct.pack('<H', new_comment_length))
+            # 在文件结尾插入 512 字节空白数据
+            # 先移动到文件的末尾
+            apk_file.seek(0, 2)  # 移动到文件末尾
+            # 写入 512 字节的空白数据
+            apk_file.write(b'\x00' * 512)  # 写入 512 个字节的零
+
+
+        # Upload modified APK to OSS
+        new_object_name = newKey
+        new_total_size = total_size + 512
+        headers = {
+            'x-oss-meta-edgepack-type': 'v1',
+            'x-oss-meta-content-length': str(new_total_size)
+        }
+        # determine_part_size方法用于确定分片大小。
+        # 增加对应预留白的信息大小
+        part_size = determine_part_size(new_total_size, preferred_size=100 * 1024)
+        upload_id = dst_bucket.init_multipart_upload(new_object_name, headers=headers).upload_id
+        
+        parts = []
+        with open(temp_local_apk_path, 'rb') as fileobj:
+            part_number = 1
+            offset = 0
+            while offset < new_total_size:
+                num_to_upload = min(part_size, new_total_size - offset)
+                result = dst_bucket.upload_part(new_object_name, upload_id, part_number,
+                                            SizedFileAdapter(fileobj, num_to_upload))
+                parts.append(PartInfo(part_number, result.etag))
+                offset += num_to_upload
+                part_number += 1
+
+        dst_bucket.complete_multipart_upload(new_object_name, upload_id, parts, headers=headers)
+    finally:
+        os.remove(temp_local_apk_path)
+
 def update_apk(bucket, object_name, central_dir_start_offset, apk_signing_block_offset, apk_signing_block_data, length, comment_length, newKey, dst_bucket):
     LOGGER.info('Updating APK for object: {}'.format(object_name))
     part_size = 5 * 1024 * 1024
@@ -178,13 +237,14 @@ def update_apk(bucket, object_name, central_dir_start_offset, apk_signing_block_
 
         # Upload modified APK to OSS
         new_object_name = newKey
+        new_total_size = total_size + 10240 + 8 + 4
         headers = {
             'x-oss-meta-edgepack-offset': str(apk_signing_block_offset + length),
-            'x-oss-meta-edgepack-type': 'v2'
+            'x-oss-meta-edgepack-type': 'v2',
+            'x-oss-meta-content-length': str(new_total_size)
         }
         # determine_part_size方法用于确定分片大小。
         # 增加对应预留白的信息大小
-        new_total_size = total_size + 10240 + 8 + 4
         part_size = determine_part_size(new_total_size, preferred_size=100 * 1024)
         upload_id = dst_bucket.init_multipart_upload(new_object_name, headers=headers).upload_id
         

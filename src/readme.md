@@ -2,6 +2,17 @@
 > 注：当前项目为 Serverless Devs 应用，由于应用中会存在需要初始化才可运行的变量（例如应用部署地区、函数名等等），所以**不推荐**直接 Clone 本仓库到本地进行部署或直接复制 s.yaml 使用，**强烈推荐**通过 `s init ${模版名称}` 的方法或应用中心进行初始化，详情可参考[部署 & 体验](#部署--体验) 。
 
 # apk-pre-tag-oss-v3 帮助文档
+<p align="center" class="flex justify-center">
+    <a href="https://www.serverless-devs.com" class="ml-1">
+    <img src="http://editor.devsapp.cn/icon?package=apk-pre-tag-oss-v3&type=packageType">
+  </a>
+  <a href="http://www.devsapp.cn/details.html?name=apk-pre-tag-oss-v3" class="ml-1">
+    <img src="http://editor.devsapp.cn/icon?package=apk-pre-tag-oss-v3&type=packageVersion">
+  </a>
+  <a href="http://www.devsapp.cn/details.html?name=apk-pre-tag-oss-v3" class="ml-1">
+    <img src="http://editor.devsapp.cn/icon?package=apk-pre-tag-oss-v3&type=packageDownload">
+  </a>
+</p>
 
 <description>
 
@@ -32,7 +43,7 @@
 | 服务/业务 |  权限  | 相关文档 |
 | --- |  --- | --- |
 | 函数计算 |  AliyunFCFullAccess | [帮助文档](https://help.aliyun.com/product/2508973.html) [计费文档](https://help.aliyun.com/document_detail/2512928.html) |
-| OSS |  AliyunOSSFullAccess | [帮助文档](undefined) [计费文档](undefined) |
+| 对象存储 |  AliyunOSSFullAccess | [帮助文档](https://help.aliyun.com/zh/oss) [计费文档](https://help.aliyun.com/zh/oss/product-overview/billing) |
 
 </service>
 
@@ -105,7 +116,7 @@
 
 #### 创建应用模版
 登录FC控制台创建应用,在通过模版创建应用下,找到对应的模版 apk动态打包,点击立即创建
-![](https://img.alicdn.com/imgextra/i3/O1CN015Ju4ps1EjIEw4ymh5_!!6000000000387-0-tps-1266-614.jpg)
+![](https://img.alicdn.com/imgextra/i2/O1CN01sBBHxg1U1M67ZavgQ_!!6000000002457-0-tps-1366-910.jpg)
 #### 参数配置:
 根据页面填写需要的参数配置,具体的含义对应参考对应的说明:
 ![](https://img.alicdn.com/imgextra/i2/O1CN01S4Sl7h1YEsFYkg3uw_!!6000000003028-0-tps-1500-654.jpg)
